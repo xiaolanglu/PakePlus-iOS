@@ -268,7 +268,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PakePlus/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = HongXing;
+				INFOPLIST_KEY_CFBundleDisplayName = PakePlus;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍照上传头像";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来上传图片";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -315,7 +315,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PakePlus/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = HongXing;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍照上传头像";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来上传图片";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
