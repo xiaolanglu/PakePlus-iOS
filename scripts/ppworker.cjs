@@ -10,16 +10,16 @@ const updateAppName = async (appName) => {
         execSync(
             `plutil -replace CFBundleDisplayName -string "${appName}" "${plistPath}"`
         )
-        const projectPbxprojPath = path.join(
-            __dirname,
-            '../PakePlus.xcodeproj/project.pbxproj'
-        )
-        let content = await fs.readFile(projectPbxprojPath, 'utf8')
-        content = content.replace(
-            /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
-            `INFOPLIST_KEY_CFBundleDisplayName = ${appName};`
-        )
-        await fs.writeFile(projectPbxprojPath, content)
+        // const projectPbxprojPath = path.join(
+        //     __dirname,
+        //     '../PakePlus.xcodeproj/project.pbxproj'
+        // )
+        // let content = await fs.readFile(projectPbxprojPath, 'utf8')
+        // content = content.replace(
+        //     /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
+        //     `INFOPLIST_KEY_CFBundleDisplayName = ${appName};`
+        // )
+        // await fs.writeFile(projectPbxprojPath, content)
         console.log(`✅ Updated app_name to: ${appName}`)
     } catch (error) {
         console.error('❌ Error updating app name:', error)
