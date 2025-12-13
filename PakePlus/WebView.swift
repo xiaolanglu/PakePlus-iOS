@@ -9,10 +9,13 @@ import SwiftUI
 import WebKit
 
 struct WebView: UIViewRepresentable {
+    // wkwebview url
     let url: URL
+    // is debug
     let debug = false
 
     func makeUIView(context: Context) -> WKWebView {
+        // creat wkwebview
         let webView = WKWebView()
 
         // debug script
@@ -82,12 +85,14 @@ struct WebView: UIViewRepresentable {
             return nil
         }
 
+        // Handle right swipe gesture
         @objc func handleRightSwipe(_ gesture: UISwipeGestureRecognizer) {
             if let webView = gesture.view as? WKWebView, webView.canGoBack {
                 webView.goBack()
             }
         }
 
+        // Handle left swipe gesture
         @objc func handleLeftSwipe(_ gesture: UISwipeGestureRecognizer) {
             if let webView = gesture.view as? WKWebView, webView.canGoForward {
                 webView.goForward()
@@ -101,7 +106,9 @@ struct WebView: UIViewRepresentable {
     }
 }
 
+
 extension WebView {
+    // load js file from bundle
     static func loadJSFile(named filename: String) -> String? {
         guard let path = Bundle.main.path(forResource: filename, ofType: "js") else {
             print("Could not find \(filename).js in bundle")
