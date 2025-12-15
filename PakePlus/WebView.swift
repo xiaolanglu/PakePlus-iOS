@@ -52,7 +52,11 @@ struct WebView: UIViewRepresentable {
         }
 
         // load url
-        webView.load(URLRequest(url: url))
+        // webView.load(URLRequest(url: url))
+        // 加载本地文件
+        if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
+            webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+        }
 
         // delegate 设置
 
@@ -105,7 +109,6 @@ struct WebView: UIViewRepresentable {
         }
     }
 }
-
 
 extension WebView {
     // load js file from bundle
