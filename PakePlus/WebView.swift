@@ -54,6 +54,7 @@ struct WebView: UIViewRepresentable {
         // load url
         // webView.load(URLRequest(url: url))
         // 加载本地文件
+        print("bundle main url: \(String(describing: Bundle.main.resourcePath))")
         if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
             webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
         }
@@ -73,9 +74,9 @@ struct WebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        let request = URLRequest(url: url)
-        print("updateUIView: \(request.url?.absoluteString ?? "")")
-        uiView.load(request)
+        // let request = URLRequest(url: url)
+        // print("updateUIView: \(request.url?.absoluteString ?? "")")
+        // uiView.load(request)
     }
 
     // add coordinator to prevent zoom
