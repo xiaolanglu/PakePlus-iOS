@@ -15,8 +15,10 @@ struct WebView: UIViewRepresentable {
     let debug = false
 
     func makeUIView(context: Context) -> WKWebView {
+        let webConfiguration = WKWebViewConfiguration()
+        webConfiguration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
         // creat wkwebview
-        let webView = WKWebView()
+        let webView = WKWebView(frame: .zero, configuration: webConfiguration)
 
         // debug script
         if debug, let debugScript = WebView.loadJSFile(named: "vConsole") {

@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDisplayName</key>
-	<string>PakePlus</string>
+	<key>BASE_URL</key>
+	<string>https://pakeplus.com/</string>
+	<key>DEBUG</key>
+	<true/>
+	<key>FULLSCREEN</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -13,9 +17,5 @@
 	<true/>
 	<key>WEBURL</key>
 	<string>https://juejin.cn/</string>
-	<key>DEBUG</key>
-	<true/>
-	<key>FULLSCREEN</key>
-	<false/>
 </dict>
 </plist>
