@@ -14,7 +14,6 @@
 		E4068D992EF115CD000BE4E1 /* Exceptions for "PakePlus" folder in "PakePlus" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Assets.xcassets,
 				custom.js,
 				Info.plist,
 				"Preview Content/Preview Assets.xcassets",
