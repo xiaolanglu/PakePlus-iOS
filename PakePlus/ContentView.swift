@@ -18,7 +18,7 @@ struct ContentView: View {
             // Color.white
             //     .ignoresSafeArea()
             // webview
-            WebView(url: URL(string: baseURL)!)
+            WebView(webUrl: URL(string: baseURL)!)
                 .ignoresSafeArea(edges: [.all])
         }.statusBarHidden()
     }

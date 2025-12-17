@@ -10,13 +10,15 @@ import WebKit
 
 struct WebView: UIViewRepresentable {
     // wkwebview url
-    let url: URL
+    let webUrl: URL
     // is debug
     let debug = false
 
     func makeUIView(context: Context) -> WKWebView {
+        let webConfiguration = WKWebViewConfiguration()
+        webConfiguration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
         // creat wkwebview
-        let webView = WKWebView()
+        let webView = WKWebView(frame: .zero, configuration: webConfiguration)
 
         // debug script
         if debug, let debugScript = WebView.loadJSFile(named: "vConsole") {
@@ -56,7 +58,8 @@ struct WebView: UIViewRepresentable {
         // 加载本地文件
         print("bundle main url: \(String(describing: Bundle.main.resourcePath))")
         if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
-            webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            let readAccessURL = url.deletingLastPathComponent()
+            webView.loadFileURL(url, allowingReadAccessTo: readAccessURL)
         }
 
         // delegate 设置
