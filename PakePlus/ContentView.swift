@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
-    
-    let baseURL = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String ?? ""
-    
+    // read value from info
+    let webUrl = Bundle.main.object(forInfoDictionaryKey: "WEBURL") as? String ?? ""
+    let fullScreen = Bundle.main.object(forInfoDictionaryKey: "FULLSCREEN") as? Bool ?? false
+
     var body: some View {
         // BottomMenuView()
         ZStack {
@@ -18,9 +19,9 @@ struct ContentView: View {
             // Color.white
             //     .ignoresSafeArea()
             // webview
-            WebView(url: URL(string: baseURL)!)
+            WebView(webUrl: URL(string: webUrl)!)
                 .ignoresSafeArea(edges: [.all])
-        }.statusBarHidden()
+        }.statusBarHidden(fullScreen)
     }
 }
 

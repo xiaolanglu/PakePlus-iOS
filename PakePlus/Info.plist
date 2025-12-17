@@ -11,7 +11,11 @@
 	</dict>
 	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
 	<true/>
-	<key>BASE_URL</key>
-	<string>https://pakeplus.com/</string>
+	<key>WEBURL</key>
+	<string>https://juejin.cn/</string>
+	<key>DEBUG</key>
+	<true/>
+	<key>FULLSCREEN</key>
+	<false/>
 </dict>
 </plist>

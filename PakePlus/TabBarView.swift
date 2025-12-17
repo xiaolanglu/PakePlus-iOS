@@ -46,7 +46,7 @@ struct BottomMenuView: View {
                 .padding(.vertical, 6)
                 
                 // WebView for the selected URL
-                WebView(url: URL(string: urls[selectedTab])!)
+                WebView(webUrl: URL(string: urls[selectedTab])!)
                     .edgesIgnoringSafeArea(.top)
                 
                 // Bottom Tab Bar
