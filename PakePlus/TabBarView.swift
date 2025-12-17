@@ -1,7 +1,7 @@
 import SwiftUI
 import WebKit
 
-struct BottomMenuView: View {
+struct TabBarView: View {
     @State private var selectedTab = 0
     @State private var isShowingDrawer = false
     @State private var isShowingMenu = false
@@ -125,7 +125,7 @@ struct BottomMenuView: View {
             }
             
             // Side Drawer
-            SideDrawerView(isShowing: $isShowingDrawer)
+            SideBarView(isShowing: $isShowingDrawer)
         }
         .onTapGesture {
             if isShowingMenu {
@@ -162,7 +162,7 @@ struct BottomMenuView: View {
 }
 
 #Preview {
-    BottomMenuView()
+    TabBarView()
 }
 
 // Add RoundedCorner extension
