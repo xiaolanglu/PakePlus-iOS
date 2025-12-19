@@ -12,7 +12,7 @@ struct WebView: UIViewRepresentable {
     // wkwebview url
     let webUrl: URL
     // is debug
-    let debug = false
+    let debug: Bool
 
     func makeUIView(context: Context) -> WKWebView {
         let webConfiguration = WKWebViewConfiguration()

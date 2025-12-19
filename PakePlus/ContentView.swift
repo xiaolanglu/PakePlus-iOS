@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     // read value from info
     let webUrl = Bundle.main.object(forInfoDictionaryKey: "WEBURL") as? String ?? ""
+    let debug = Bundle.main.object(forInfoDictionaryKey: "DEBUG") as? Bool ?? false
     let fullScreen = Bundle.main.object(forInfoDictionaryKey: "FULLSCREEN") as? Bool ?? false
 
     var body: some View {
@@ -19,12 +20,12 @@ struct ContentView: View {
             // Color.white
             //     .ignoresSafeArea()
             // webview
-            WebView(webUrl: URL(string: webUrl)!)
+            WebView(webUrl: URL(string: webUrl)!, debug: debug)
                 .ignoresSafeArea(edges: [.all])
         }.statusBarHidden(fullScreen)
     }
 }
 
-#Preview {
-    ContentView()
-}
+// #Preview {
+//     ContentView()
+// }
