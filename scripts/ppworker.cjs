@@ -174,7 +174,7 @@ const main = async () => {
     } = ppconfig.ios
 
     // Update app name if provided
-    // await updateAppName(showName)
+    await updateAppName(showName)
 
     // Update web URL if provided
     // await updateWebUrl(webUrl, safeArea)
