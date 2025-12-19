@@ -150,7 +150,12 @@ const updateInfoPlist = async (debug, webUrl, isHtml, fullScreen) => {
         infoPlistData.WEBURL = webUrl
     }
     // update debug
-    infoPlistData.DEBUG = debug
+    if (debug) {
+        infoPlistData.DEBUG = debug
+    } else {
+        // remove vConsole.js
+        fs.unlinkSync(path.join(__dirname, '../PakePlus/vConsole.js'))
+    }
     // update fullScreen
     infoPlistData.FULLSCREEN = fullScreen
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
