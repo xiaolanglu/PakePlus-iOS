@@ -18,7 +18,8 @@ const updateAppName = async (appName) => {
     }
 }
 
-const updateWebUrl = async (webUrl, safeArea) => {
+// update ContentView.swift
+const updateContentView = async (safeArea) => {
     try {
         // Assuming ContentView.swift
         const contentViewPath = path.join(
@@ -26,10 +27,6 @@ const updateWebUrl = async (webUrl, safeArea) => {
             '../PakePlus/ContentView.swift'
         )
         let content = await fs.readFile(contentViewPath, 'utf8')
-        content = content.replace(
-            /WebView\(url: URL\(string: ".*?"\)!\)/,
-            `WebView(url: URL(string: "${webUrl}")!)`
-        )
         if (safeArea === 'all') {
             console.log('safeArea is all')
         } else if (safeArea === 'top') {
@@ -93,7 +90,7 @@ const updateWebEnv = async (debug, webview) => {
 }
 
 // set github env
-const setGithubEnv = (name, version, pubBody) => {
+const setGithubEnv = (name, version, pubBody, isHtml) => {
     console.log('setGithubEnv......')
     const envPath = process.env.GITHUB_ENV
     if (!envPath) {
@@ -105,6 +102,7 @@ const setGithubEnv = (name, version, pubBody) => {
             NAME: name,
             VERSION: version,
             PUBBODY: pubBody,
+            ISHTML: isHtml,
         }
         for (const [key, value] of Object.entries(entries)) {
             if (value !== undefined) {
@@ -140,7 +138,7 @@ const updateBundleId = async (newBundleId) => {
     }
 }
 
-// parse Info.plist and update baseUrl
+// parse Info.plist and update Info.plist
 const updateInfoPlist = async () => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
@@ -168,7 +166,7 @@ const main = async () => {
     await updateAppName(showName)
 
     // Update web URL if provided
-    // await updateWebUrl(webUrl, safeArea)
+    await updateContentView(safeArea)
 
     // update debug
     // await updateWebEnv(debug, webview)
@@ -177,7 +175,7 @@ const main = async () => {
     // await updateBundleId(id)
 
     // set github env
-    // setGithubEnv(name, version, pubBody)
+    setGithubEnv(name, version, pubBody, isHtml)
 
     // parse Info.plist and update baseUrl
     await updateInfoPlist()
