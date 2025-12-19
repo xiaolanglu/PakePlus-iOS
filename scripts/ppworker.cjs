@@ -155,8 +155,8 @@ const updateInfoPlist = async () => {
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
     const infoPlistData = plist.parse(infoPlist)
     console.log('infoPlistData', infoPlistData)
-    // infoPlistData.BASE_URL = baseUrl
-    // fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
+    infoPlistData.BASE_URL = 'https://www.doubao.com/'
+    fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
 }
 
 const main = async () => {
