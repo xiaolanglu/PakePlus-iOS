@@ -70,7 +70,7 @@ const updateContentView = async (safeArea) => {
     }
 }
 
-const updateWebEnv = async (debug, webview) => {
+const updateWebEnv = async (webview) => {
     // update debug
     const webViewPath = path.join(__dirname, '../PakePlus/WebView.swift')
     let content = await fs.readFile(webViewPath, 'utf8')
@@ -169,10 +169,10 @@ const main = async () => {
     await updateContentView(safeArea)
 
     // update debug
-    // await updateWebEnv(debug, webview)
+    await updateWebEnv(webview)
 
     // update android applicationId
-    // await updateBundleId(id)
+    await updateBundleId(id)
 
     // set github env
     setGithubEnv(name, version, pubBody, isHtml)
