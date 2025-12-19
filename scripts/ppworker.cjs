@@ -139,17 +139,25 @@ const updateBundleId = async (newBundleId) => {
 }
 
 // parse Info.plist and update Info.plist
-const updateInfoPlist = async () => {
+const updateInfoPlist = async (debug, webUrl, isHtml, fullScreen) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
     const infoPlistData = plist.parse(infoPlist)
     console.log('infoPlistData', infoPlistData)
-    infoPlistData.WEBURL = 'https://www.doubao.com/'
+    if (isHtml) {
+        infoPlistData.WEBURL = 'https://www.pakeplus.com/'
+    } else {
+        infoPlistData.WEBURL = webUrl
+    }
+    // update debug
+    infoPlistData.DEBUG = debug
+    // update fullScreen
+    infoPlistData.FULLSCREEN = fullScreen
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
 }
 
 const main = async () => {
-    const { webview } = ppconfig.phone
+    const { webview, fullScreen } = ppconfig.phone
     const {
         name,
         showName,
@@ -178,7 +186,7 @@ const main = async () => {
     setGithubEnv(name, version, pubBody, isHtml)
 
     // parse Info.plist and update baseUrl
-    await updateInfoPlist()
+    await updateInfoPlist(debug, webUrl, isHtml, fullScreen)
 
     // success
     console.log('✅ Worker Success')
