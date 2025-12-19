@@ -148,6 +148,8 @@ const updateInfoPlist = async (debug, webUrl, isHtml, fullScreen) => {
         infoPlistData.WEBURL = 'https://www.pakeplus.com/'
     } else {
         infoPlistData.WEBURL = webUrl
+        // remove index.html
+        fs.unlinkSync(path.join(__dirname, '../PakePlus/index.html'))
     }
     // update debug
     if (debug) {
