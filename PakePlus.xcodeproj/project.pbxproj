@@ -14,10 +14,8 @@
 		E4068D992EF115CD000BE4E1 /* Exceptions for "PakePlus" folder in "PakePlus" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				custom.js,
 				Info.plist,
 				"Preview Content/Preview Assets.xcassets",
-				vConsole.js,
 			);
 			target = E43DF9142D9808470092BCB3 /* PakePlus */;
 		};

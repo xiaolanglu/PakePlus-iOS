@@ -77,43 +77,42 @@ struct WebView: UIViewRepresentable {
         return webView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        let request = URLRequest(url: webUrl)
-        print("updateUIView: \(request.url?.absoluteString ?? "")")
-        uiView.load(request)
-    }
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 
     // add coordinator to prevent zoom
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
+}
 
-    class Coordinator: NSObject, UIScrollViewDelegate {
-        func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-            // disable zoom
-            return nil
-        }
 
-        // Handle right swipe gesture
-        @objc func handleRightSwipe(_ gesture: UISwipeGestureRecognizer) {
-            if let webView = gesture.view as? WKWebView, webView.canGoBack {
-                webView.goBack()
-            }
-        }
+// swifui coordinator
+class Coordinator: NSObject, UIScrollViewDelegate {
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        // disable zoom
+        return nil
+    }
 
-        // Handle left swipe gesture
-        @objc func handleLeftSwipe(_ gesture: UISwipeGestureRecognizer) {
-            if let webView = gesture.view as? WKWebView, webView.canGoForward {
-                webView.goForward()
-            }
-        }
-
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("didFinish navigation: \(String(describing: webView.url))")
-            // currentURL = webView.url
+    // Handle right swipe gesture
+    @objc func handleRightSwipe(_ gesture: UISwipeGestureRecognizer) {
+        if let webView = gesture.view as? WKWebView, webView.canGoBack {
+            webView.goBack()
         }
     }
+
+    // Handle left swipe gesture
+    @objc func handleLeftSwipe(_ gesture: UISwipeGestureRecognizer) {
+        if let webView = gesture.view as? WKWebView, webView.canGoForward {
+            webView.goForward()
+        }
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        print("didFinish navigation: \(String(describing: webView.url))")
+        // currentURL = webView.url
+    }
 }
+
 
 extension WebView {
     // load js file from bundle

@@ -4,8 +4,6 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>PakePlus</string>
-    <key>BASE_URL</key>
-	<string>https://pakeplus.com/</string>
 	<key>DEBUG</key>
 	<true/>
 	<key>FULLSCREEN</key>
@@ -18,6 +16,6 @@
 	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
 	<true/>
 	<key>WEBURL</key>
-	<string>https://juejin.cn/</string>
+	<string>https://pakeplus.com</string>
 </dict>
 </plist>
