@@ -1,5 +1,6 @@
 const { execSync } = require('child_process')
 const fs = require('fs-extra')
+const plist = require('plist')
 const path = require('path')
 const ppconfig = require('./ppconfig.json')
 
@@ -148,25 +149,47 @@ const updateBundleId = async (newBundleId) => {
     }
 }
 
+// parse Info.plist and update baseUrl
+const updateInfoPlist = async () => {
+    const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
+    const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
+    const infoPlistData = plist.parse(infoPlist)
+    console.log('infoPlistData', infoPlistData)
+    // infoPlistData.BASE_URL = baseUrl
+    // fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
+}
+
 const main = async () => {
     const { webview } = ppconfig.phone
-    const { name, showName, version, webUrl, id, pubBody, debug, safeArea } =
-        ppconfig.ios
+    const {
+        name,
+        showName,
+        version,
+        webUrl,
+        id,
+        pubBody,
+        debug,
+        safeArea,
+        isHtml,
+    } = ppconfig.ios
 
     // Update app name if provided
-    await updateAppName(showName)
+    // await updateAppName(showName)
 
     // Update web URL if provided
-    await updateWebUrl(webUrl, safeArea)
+    // await updateWebUrl(webUrl, safeArea)
 
     // update debug
-    await updateWebEnv(debug, webview)
+    // await updateWebEnv(debug, webview)
 
     // update android applicationId
-    await updateBundleId(id)
+    // await updateBundleId(id)
 
     // set github env
-    setGithubEnv(name, version, pubBody)
+    // setGithubEnv(name, version, pubBody)
+
+    // parse Info.plist and update baseUrl
+    await updateInfoPlist()
 
     // success
     console.log('✅ Worker Success')
