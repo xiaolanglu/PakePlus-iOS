@@ -124,15 +124,15 @@
     },
     "ios": {
         "name": "PakePlus",
-        "showName": "PakePlus",
+        "showName": "PakePlus5",
         "version": "0.0.1",
         "webUrl": "https://juejin.cn/",
         "id": "com.xiaoshen.pakeplus.ios",
         "icon": "./app-icon.png",
         "desc": "Package for personal use only, please do not use for commercial purposes（打包仅限个人使用，请勿传播或商业用途）",
         "pubBody": "Package for personal use only, please do not use for commercial purposes（打包仅限个人使用，请勿传播或商业用途）",
-        "isHtml": false,
-        "debug": false,
+        "isHtml": true,
+        "debug": true,
         "safeArea": "all"
     },
     "android": {
