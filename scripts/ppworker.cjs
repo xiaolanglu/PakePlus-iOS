@@ -140,6 +140,7 @@ const updateBundleId = async (newBundleId) => {
 
 // parse Info.plist and update Info.plist
 const updateInfoPlist = async (
+    showName,
     debug,
     webUrl,
     isHtml,
@@ -149,6 +150,9 @@ const updateInfoPlist = async (
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
     const infoPlistData = plist.parse(infoPlist)
+    // update showName
+    infoPlistData.CFBundleDisplayName = showName
+    // is html
     if (isHtml) {
         infoPlistData.WEBURL = 'https://www.pakeplus.com/'
     } else {
@@ -191,7 +195,7 @@ const main = async () => {
     } = ppconfig.ios
 
     // Update app name if provided
-    await updateAppName(showName)
+    // await updateAppName(showName)
 
     // Update web URL if provided
     await updateContentView(safeArea)
@@ -207,7 +211,14 @@ const main = async () => {
 
     // parse Info.plist and update baseUrl
     const userAgent = webview.userAgent
-    await updateInfoPlist(debug, webUrl, isHtml, fullScreen, userAgent)
+    await updateInfoPlist(
+        showName,
+        debug,
+        webUrl,
+        isHtml,
+        fullScreen,
+        userAgent
+    )
 
     // success
     console.log('✅ Worker Success')
