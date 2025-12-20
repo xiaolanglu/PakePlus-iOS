@@ -64,9 +64,9 @@ const updateContentView = async (safeArea) => {
             )
         }
         await fs.writeFile(contentViewPath, content)
-        console.log(`✅ Updated web URL to: ${webUrl}`)
+        console.log(`✅ Updated safeArea to: ${safeArea}`)
     } catch (error) {
-        console.error('❌ Error updating web URL:', error)
+        console.error('❌ Error updating safeArea:', error)
     }
 }
 
