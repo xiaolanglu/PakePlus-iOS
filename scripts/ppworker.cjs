@@ -139,7 +139,13 @@ const updateBundleId = async (newBundleId) => {
 }
 
 // parse Info.plist and update Info.plist
-const updateInfoPlist = async (debug, webUrl, isHtml, fullScreen) => {
+const updateInfoPlist = async (
+    debug,
+    webUrl,
+    isHtml,
+    fullScreen,
+    userAgent
+) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
     const infoPlistData = plist.parse(infoPlist)
@@ -157,6 +163,12 @@ const updateInfoPlist = async (debug, webUrl, isHtml, fullScreen) => {
     } else {
         // remove vConsole.js
         fs.unlinkSync(path.join(__dirname, '../PakePlus/vConsole.js'))
+    }
+    // update userAgent
+    if (userAgent) {
+        infoPlistData.USERAGENT = userAgent
+    } else {
+        infoPlistData.USERAGENT = ''
     }
     // update fullScreen
     infoPlistData.FULLSCREEN = fullScreen
@@ -184,7 +196,7 @@ const main = async () => {
     await updateContentView(safeArea)
 
     // update debug
-    await updateWebEnv(webview)
+    // await updateWebEnv(webview)
 
     // update android applicationId
     await updateBundleId(id)
@@ -193,7 +205,8 @@ const main = async () => {
     setGithubEnv(name, version, pubBody, isHtml)
 
     // parse Info.plist and update baseUrl
-    await updateInfoPlist(debug, webUrl, isHtml, fullScreen)
+    const userAgent = webview.userAgent
+    await updateInfoPlist(debug, webUrl, isHtml, fullScreen, userAgent)
 
     // success
     console.log('✅ Worker Success')

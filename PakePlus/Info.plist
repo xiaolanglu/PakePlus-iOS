@@ -17,5 +17,7 @@
 	<true/>
 	<key>WEBURL</key>
 	<string>https://pakeplus.com</string>
+    <key>USERAGENT</key>
+	<string></string>
 </dict>
 </plist>
