@@ -149,7 +149,6 @@ const updateInfoPlist = async (
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
     const infoPlistData = plist.parse(infoPlist)
-    console.log('infoPlistData', infoPlistData)
     if (isHtml) {
         infoPlistData.WEBURL = 'https://www.pakeplus.com/'
     } else {
@@ -172,6 +171,8 @@ const updateInfoPlist = async (
     }
     // update fullScreen
     infoPlistData.FULLSCREEN = fullScreen
+    // log
+    console.log('new infoPlist: ', infoPlistData)
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
 }
 
