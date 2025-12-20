@@ -13,6 +13,8 @@ struct WebView: UIViewRepresentable {
     let webUrl: URL
     // is debug
     let debug: Bool
+    // userAgent
+    let userAgent = Bundle.main.object(forInfoDictionaryKey: "USERAGENT") as? String ?? ""
 
     func makeUIView(context: Context) -> WKWebView {
         let webConfiguration = WKWebViewConfiguration()
@@ -30,8 +32,10 @@ struct WebView: UIViewRepresentable {
             )
             webView.configuration.userContentController.addUserScript(userScript)
         }
-
-        // webView.customUserAgent = ""
+        // config userAgent
+        if !userAgent.isEmpty {
+            webView.customUserAgent = userAgent
+        }
 
         // disable double tap zoom
         let script = """
@@ -85,7 +89,6 @@ struct WebView: UIViewRepresentable {
     }
 }
 
-
 // swifui coordinator
 class Coordinator: NSObject, UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
@@ -112,7 +115,6 @@ class Coordinator: NSObject, UIScrollViewDelegate {
         // currentURL = webView.url
     }
 }
-
 
 extension WebView {
     // load js file from bundle

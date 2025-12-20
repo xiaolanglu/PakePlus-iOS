@@ -5,7 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>PakePlus</string>
 	<key>DEBUG</key>
-	<true/>
+	<false/>
 	<key>FULLSCREEN</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
@@ -17,7 +17,7 @@
 	<true/>
 	<key>WEBURL</key>
 	<string>https://pakeplus.com</string>
-    <key>USERAGENT</key>
+	<key>USERAGENT</key>
 	<string></string>
 </dict>
 </plist>
