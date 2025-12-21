@@ -144,7 +144,7 @@ const updateInfoPlist = async (
     debug,
     webUrl,
     isHtml,
-    fullScreen,
+    safeArea,
     userAgent
 ) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
@@ -174,14 +174,18 @@ const updateInfoPlist = async (
         infoPlistData.USERAGENT = ''
     }
     // update fullScreen
-    infoPlistData.FULLSCREEN = fullScreen
+    if (safeArea === 'fullscreen') {
+        infoPlistData.FULLSCREEN = true
+    } else {
+        infoPlistData.FULLSCREEN = false
+    }
     // log
     console.log('new infoPlist: ', infoPlistData)
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
 }
 
 const main = async () => {
-    const { webview, fullScreen } = ppconfig.phone
+    const { webview } = ppconfig.phone
     const {
         name,
         showName,
@@ -211,14 +215,7 @@ const main = async () => {
 
     // parse Info.plist and update baseUrl
     const userAgent = webview.userAgent
-    await updateInfoPlist(
-        showName,
-        debug,
-        webUrl,
-        isHtml,
-        fullScreen,
-        userAgent
-    )
+    await updateInfoPlist(showName, debug, webUrl, isHtml, safeArea, userAgent)
 
     // success
     console.log('✅ Worker Success')
