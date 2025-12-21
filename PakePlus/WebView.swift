@@ -31,6 +31,9 @@ struct WebView: UIViewRepresentable {
                 forMainFrameOnly: true
             )
             webView.configuration.userContentController.addUserScript(userScript)
+            if #available(iOS 16.4, *) {
+                webView.isInspectable = true
+            }
         }
         // config userAgent
         if !userAgent.isEmpty {
