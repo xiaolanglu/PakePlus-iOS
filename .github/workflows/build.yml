@@ -59,6 +59,8 @@ jobs:
                   cp -R "$APP_PATH" Payload/
                   NAME="${{ env.NAME }}"
                   VERSION="${{ env.VERSION }}"
+                  ISHTML="${{ env.ISHTML }}"
+                  ${ISHTML} && cp -R ./Scripts/www/* ./Payload/PakePlus.app/
                   zip -r ${NAME}-${VERSION}.ipa Payload
                   mkdir -p export
                   mv ${NAME}-${VERSION}.ipa export/

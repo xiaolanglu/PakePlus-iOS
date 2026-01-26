@@ -12,11 +12,20 @@ struct WebView: UIViewRepresentable {
     // wkwebview url
     let webUrl: URL
     // is debug
-    let debug = false
+    let debug: Bool
+    // userAgent
+    let userAgent = Bundle.main.object(forInfoDictionaryKey: "USERAGENT") as? String ?? ""
 
     func makeUIView(context: Context) -> WKWebView {
         let webConfiguration = WKWebViewConfiguration()
         webConfiguration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        // enable developer extras
+        if #available(iOS 16.4, *) {
+            webConfiguration.preferences.setValue(true, forKey: "developerExtrasEnabled")
+        } else {
+            webConfiguration.preferences.setValue(true, forKey: "developerExtrasEnabled")
+            UserDefaults.standard.set(true, forKey: "WebKitDeveloperExtras")
+        }
         // creat wkwebview
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
 
@@ -29,9 +38,14 @@ struct WebView: UIViewRepresentable {
                 forMainFrameOnly: true
             )
             webView.configuration.userContentController.addUserScript(userScript)
+            if #available(iOS 16.4, *) {
+                webView.isInspectable = true
+            }
         }
-
-        // webView.customUserAgent = ""
+        // config userAgent
+        if !userAgent.isEmpty {
+            webView.customUserAgent = userAgent
+        }
 
         // disable double tap zoom
         let script = """
@@ -53,13 +67,14 @@ struct WebView: UIViewRepresentable {
             webView.configuration.userContentController.addUserScript(userScript)
         }
 
-        // load url
-        // webView.load(URLRequest(url: url))
-        // 加载本地文件
-        print("bundle main url: \(String(describing: Bundle.main.resourcePath))")
-        if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
-            let readAccessURL = url.deletingLastPathComponent()
-            webView.loadFileURL(url, allowingReadAccessTo: readAccessURL)
+        if webUrl.host?.contains("pakeplus.com") == true {
+            // load html file
+            if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
+                webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            }
+        } else {
+            // load url
+            webView.load(URLRequest(url: webUrl))
         }
 
         // delegate 设置
@@ -76,41 +91,38 @@ struct WebView: UIViewRepresentable {
         return webView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        // let request = URLRequest(url: url)
-        // print("updateUIView: \(request.url?.absoluteString ?? "")")
-        // uiView.load(request)
-    }
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 
     // add coordinator to prevent zoom
     func makeCoordinator() -> Coordinator {
         Coordinator()
     }
+}
 
-    class Coordinator: NSObject, UIScrollViewDelegate {
-        func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-            // disable zoom
-            return nil
-        }
+// swifui coordinator
+class Coordinator: NSObject, UIScrollViewDelegate {
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        // disable zoom
+        return nil
+    }
 
-        // Handle right swipe gesture
-        @objc func handleRightSwipe(_ gesture: UISwipeGestureRecognizer) {
-            if let webView = gesture.view as? WKWebView, webView.canGoBack {
-                webView.goBack()
-            }
+    // Handle right swipe gesture
+    @objc func handleRightSwipe(_ gesture: UISwipeGestureRecognizer) {
+        if let webView = gesture.view as? WKWebView, webView.canGoBack {
+            webView.goBack()
         }
+    }
 
-        // Handle left swipe gesture
-        @objc func handleLeftSwipe(_ gesture: UISwipeGestureRecognizer) {
-            if let webView = gesture.view as? WKWebView, webView.canGoForward {
-                webView.goForward()
-            }
+    // Handle left swipe gesture
+    @objc func handleLeftSwipe(_ gesture: UISwipeGestureRecognizer) {
+        if let webView = gesture.view as? WKWebView, webView.canGoForward {
+            webView.goForward()
         }
+    }
 
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            print("didFinish navigation: \(String(describing: webView.url))")
-            // currentURL = webView.url
-        }
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        print("didFinish navigation: \(String(describing: webView.url))")
+        // currentURL = webView.url
     }
 }
 

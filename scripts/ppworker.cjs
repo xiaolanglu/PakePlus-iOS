@@ -1,5 +1,6 @@
 const { execSync } = require('child_process')
 const fs = require('fs-extra')
+const plist = require('plist')
 const path = require('path')
 const ppconfig = require('./ppconfig.json')
 
@@ -10,15 +11,6 @@ const updateAppName = async (appName) => {
         execSync(
             `plutil -replace CFBundleDisplayName -string "${appName}" "${plistPath}"`
         )
-        // const projectPbxprojPath = path.join(
-        //     __dirname,
-        //     '../PakePlus.xcodeproj/project.pbxproj'
-        // )
-        // let content = await fs.readFile(projectPbxprojPath, 'utf8')
-        // content = content.replace(
-        //     /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
-        //     `INFOPLIST_KEY_CFBundleDisplayName = ${appName};`
-        // )
         // await fs.writeFile(projectPbxprojPath, content)
         console.log(`✅ Updated app_name to: ${appName}`)
     } catch (error) {
@@ -26,7 +18,8 @@ const updateAppName = async (appName) => {
     }
 }
 
-const updateWebUrl = async (webUrl, safeArea) => {
+// update ContentView.swift
+const updateContentView = async (safeArea) => {
     try {
         // Assuming ContentView.swift
         const contentViewPath = path.join(
@@ -34,10 +27,6 @@ const updateWebUrl = async (webUrl, safeArea) => {
             '../PakePlus/ContentView.swift'
         )
         let content = await fs.readFile(contentViewPath, 'utf8')
-        content = content.replace(
-            /WebView\(url: URL\(string: ".*?"\)!\)/,
-            `WebView(url: URL(string: "${webUrl}")!)`
-        )
         if (safeArea === 'all') {
             console.log('safeArea is all')
         } else if (safeArea === 'top') {
@@ -75,13 +64,13 @@ const updateWebUrl = async (webUrl, safeArea) => {
             )
         }
         await fs.writeFile(contentViewPath, content)
-        console.log(`✅ Updated web URL to: ${webUrl}`)
+        console.log(`✅ Updated safeArea to: ${safeArea}`)
     } catch (error) {
-        console.error('❌ Error updating web URL:', error)
+        console.error('❌ Error updating safeArea:', error)
     }
 }
 
-const updateWebEnv = async (debug, webview) => {
+const updateWebEnv = async (webview) => {
     // update debug
     const webViewPath = path.join(__dirname, '../PakePlus/WebView.swift')
     let content = await fs.readFile(webViewPath, 'utf8')
@@ -101,7 +90,7 @@ const updateWebEnv = async (debug, webview) => {
 }
 
 // set github env
-const setGithubEnv = (name, version, pubBody) => {
+const setGithubEnv = (name, version, pubBody, isHtml) => {
     console.log('setGithubEnv......')
     const envPath = process.env.GITHUB_ENV
     if (!envPath) {
@@ -113,6 +102,7 @@ const setGithubEnv = (name, version, pubBody) => {
             NAME: name,
             VERSION: version,
             PUBBODY: pubBody,
+            ISHTML: isHtml,
         }
         for (const [key, value] of Object.entries(entries)) {
             if (value !== undefined) {
@@ -148,25 +138,84 @@ const updateBundleId = async (newBundleId) => {
     }
 }
 
+// parse Info.plist and update Info.plist
+const updateInfoPlist = async (
+    showName,
+    debug,
+    webUrl,
+    isHtml,
+    safeArea,
+    userAgent
+) => {
+    const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
+    const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
+    const infoPlistData = plist.parse(infoPlist)
+    // update showName
+    infoPlistData.CFBundleDisplayName = showName
+    // is html
+    if (isHtml) {
+        infoPlistData.WEBURL = 'https://www.pakeplus.com/'
+    } else {
+        infoPlistData.WEBURL = webUrl
+        // remove index.html
+        fs.unlinkSync(path.join(__dirname, '../PakePlus/index.html'))
+    }
+    // update debug
+    if (debug) {
+        infoPlistData.DEBUG = debug
+    } else {
+        // remove vConsole.js
+        fs.unlinkSync(path.join(__dirname, '../PakePlus/vConsole.js'))
+    }
+    // update userAgent
+    if (userAgent) {
+        infoPlistData.USERAGENT = userAgent
+    } else {
+        infoPlistData.USERAGENT = ''
+    }
+    // update fullScreen
+    if (safeArea === 'fullscreen') {
+        infoPlistData.FULLSCREEN = true
+    } else {
+        infoPlistData.FULLSCREEN = false
+    }
+    // log
+    console.log('new infoPlist: ', infoPlistData)
+    fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
+}
+
 const main = async () => {
     const { webview } = ppconfig.phone
-    const { name, showName, version, webUrl, id, pubBody, debug, safeArea } =
-        ppconfig.ios
+    const {
+        name,
+        showName,
+        version,
+        webUrl,
+        id,
+        pubBody,
+        debug,
+        safeArea,
+        isHtml,
+    } = ppconfig.ios
 
     // Update app name if provided
-    await updateAppName(showName)
+    // await updateAppName(showName)
 
     // Update web URL if provided
-    await updateWebUrl(webUrl, safeArea)
+    await updateContentView(safeArea)
 
     // update debug
-    await updateWebEnv(debug, webview)
+    // await updateWebEnv(webview)
 
     // update android applicationId
     await updateBundleId(id)
 
     // set github env
-    setGithubEnv(name, version, pubBody)
+    setGithubEnv(name, version, pubBody, isHtml)
+
+    // parse Info.plist and update baseUrl
+    const userAgent = webview.userAgent
+    await updateInfoPlist(showName, debug, webUrl, isHtml, safeArea, userAgent)
 
     // success
     console.log('✅ Worker Success')
