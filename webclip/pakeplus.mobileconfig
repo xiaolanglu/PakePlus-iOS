@@ -18,7 +18,7 @@
 			<key>Label</key>
 			<string>PakePlus</string>
 			<key>PayloadDescription</key>
-			<string>配置的描述文件描述</string>
+			<string>Configuration Payload description</string>
 			<key>PayloadDisplayName</key>
 			<string>PakePayload</string>
 			<key>PayloadIdentifier</key>
@@ -38,7 +38,7 @@
 	<key>PayloadDisplayName</key>
 	<string>PakePlus</string>
 	<key>PayloadIdentifier</key>
-	<string>songdeMacBook-Pro.23014396-AA45-42E3-AB8D-F50D6D330A37</string>
+	<string>com.pakeplus.shen.23014396-AA45-42E3-AB8D-F50D6D330A37</string>
 	<key>PayloadRemovalDisallowed</key>
 	<false/>
 	<key>PayloadType</key>
