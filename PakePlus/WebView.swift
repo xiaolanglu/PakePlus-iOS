@@ -31,6 +31,8 @@ struct WebView: UIViewRepresentable {
         }
         // creat wkwebview
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
+        webView.uiDelegate = context.coordinator
+        webView.navigationDelegate = context.coordinator
 
         // debug script
         if debug, let debugScript = WebView.loadJSFile(named: "vConsole") {
@@ -103,7 +105,7 @@ struct WebView: UIViewRepresentable {
 }
 
 // swifui coordinator
-class Coordinator: NSObject, UIScrollViewDelegate {
+class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         // disable zoom
         return nil
