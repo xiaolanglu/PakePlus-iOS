@@ -125,9 +125,134 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
     }
 
+    // MARK: - WKNavigationDelegate
+
+    // 拦截导航，识别常见文件类型并触发下载
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let url = navigationAction.request.url else {
+            decisionHandler(.allow)
+            return
+        }
+
+        // 仅对用户点击链接触发下载，其它导航正常加载
+        if navigationAction.navigationType == .linkActivated, shouldDownload(url: url) {
+            decisionHandler(.cancel)
+            downloadFile(from: url)
+            return
+        }
+
+        decisionHandler(.allow)
+    }
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("didFinish navigation: \(String(describing: webView.url))")
         // currentURL = webView.url
+    }
+
+    // MARK: - 下载逻辑
+
+    /// 判断 URL 是否是需要下载的常见文件类型
+    private func shouldDownload(url: URL) -> Bool {
+        let pathExtension = url.pathExtension.lowercased()
+        if pathExtension.isEmpty {
+            return false
+        }
+
+        let downloadableExtensions: Set<String> = [
+            // 图片
+            "png", "jpg", "jpeg", "gif", "bmp", "webp", "heic",
+            // 视频
+            "mp4", "mov", "m4v", "avi", "mkv",
+            // 音频
+            "mp3", "wav", "aac", "m4a", "flac",
+            // 文本/文档
+            "txt", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+            // 压缩
+            "zip", "rar", "7z"
+        ]
+
+        return downloadableExtensions.contains(pathExtension)
+    }
+
+    /// 使用 URLSession 下载文件并弹出系统分享面板，让用户保存到「文件」或其他 App
+    private func downloadFile(from url: URL) {
+        print("开始下载文件: \(url.absoluteString)")
+        let task = URLSession.shared.downloadTask(with: url) { [weak self] tempURL, response, error in
+            if let error = error {
+                print("下载失败: \(error.localizedDescription)")
+                return
+            }
+
+            guard let tempURL = tempURL else {
+                print("下载失败: 临时文件不存在")
+                return
+            }
+
+            // 从响应或 URL 中获取文件名
+            let suggestedName = (response as? HTTPURLResponse)?
+                .allHeaderFields["Content-Disposition"] as? String
+
+            let fileName: String
+            if let suggestedName,
+               let range = suggestedName.range(of: "filename=") {
+                let namePart = String(suggestedName[range.upperBound...]).trimmingCharacters(in: CharacterSet(charactersIn: "\"; "))
+                fileName = namePart.isEmpty ? url.lastPathComponent : namePart
+            } else {
+                fileName = url.lastPathComponent.isEmpty ? "file" : url.lastPathComponent
+            }
+
+            let fileManager = FileManager.default
+            let tempDir = fileManager.temporaryDirectory
+            let destinationURL = tempDir.appendingPathComponent(fileName)
+
+            // 若已存在同名文件，先删除
+            try? fileManager.removeItem(at: destinationURL)
+
+            do {
+                try fileManager.moveItem(at: tempURL, to: destinationURL)
+            } catch {
+                print("移动下载文件失败: \(error.localizedDescription)")
+                return
+            }
+
+            print("下载完成，临时保存路径: \(destinationURL.path)")
+
+            DispatchQueue.main.async {
+                self?.presentShareSheet(for: destinationURL)
+            }
+        }
+
+        task.resume()
+    }
+
+    /// 弹出系统分享面板，用户可选择保存到「文件」或分享到其它 App
+    private func presentShareSheet(for fileURL: URL) {
+        let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+        activityVC.popoverPresentationController?.sourceView = UIApplication.shared.windows.first { $0.isKeyWindow }
+
+        if let topVC = Coordinator.topViewController() {
+            topVC.present(activityVC, animated: true, completion: nil)
+        } else {
+            print("无法找到顶层视图控制器，无法展示分享面板")
+        }
+    }
+
+    /// 获取当前顶层 UIViewController
+    private static func topViewController(base: UIViewController? = UIApplication.shared.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .flatMap { $0.windows }
+        .first(where: { $0.isKeyWindow })?.rootViewController) -> UIViewController? {
+
+        if let nav = base as? UINavigationController {
+            return topViewController(base: nav.visibleViewController)
+        }
+        if let tab = base as? UITabBarController, let selected = tab.selectedViewController {
+            return topViewController(base: selected)
+        }
+        if let presented = base?.presentedViewController {
+            return topViewController(base: presented)
+        }
+        return base
     }
 }
 
