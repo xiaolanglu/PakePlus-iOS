@@ -279,7 +279,6 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
     }
 
-    // MARK: - 下载逻辑
 
     /// 判断 URL 是否是需要下载的常见文件类型
     private func shouldDownload(url: URL) -> Bool {
