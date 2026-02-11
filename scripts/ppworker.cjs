@@ -117,7 +117,7 @@ const setGithubEnv = (name, version, pubBody, isHtml) => {
     console.log('setGithubEnv success')
 }
 
-// update android applicationId
+// update ios applicationId
 const updateBundleId = async (newBundleId) => {
     // Write back only if changes were made
     const pbxprojPath = path.join(
@@ -207,7 +207,7 @@ const main = async () => {
     // update debug
     // await updateWebEnv(webview)
 
-    // update android applicationId
+    // update ios applicationId
     await updateBundleId(id)
 
     // set github env

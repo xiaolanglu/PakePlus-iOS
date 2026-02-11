@@ -274,7 +274,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PakePlus/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PakePlus;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍照上传头像及网页视频通话";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "用于网页语音、视频通话";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来上传图片";
@@ -323,7 +322,6 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PakePlus/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PakePlus;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍照上传头像及网页视频通话";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "用于网页语音、视频通话";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要访问相册来上传图片";
