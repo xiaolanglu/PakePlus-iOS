@@ -7,6 +7,7 @@
 
 import SwiftUI
 import WebKit
+import AVFoundation
 
 struct WebView: UIViewRepresentable {
     // wkwebview url
@@ -147,6 +148,40 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("didFinish navigation: \(String(describing: webView.url))")
         // currentURL = webView.url
+    }
+
+    // MARK: - 媒体（摄像头 / 麦克风）权限
+
+    @available(iOS 15.0, *)
+    func webView(_ webView: WKWebView,
+                 requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                 initiatedByFrame frame: WKFrameInfo,
+                 type: WKMediaCaptureType,
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        // 如果 APP 已经拿到系统层的摄像头/麦克风权限，则直接为网页授权，不再弹出网页权限弹窗
+        if hasAppMediaPermission(for: type) {
+            decisionHandler(.grant)
+        } else {
+            // APP 还没有对应权限时，保持默认行为（由系统决定是否弹框）
+            decisionHandler(.prompt)
+        }
+    }
+
+    /// 判断 APP 是否已经拥有对应的系统媒体权限
+    private func hasAppMediaPermission(for type: WKMediaCaptureType) -> Bool {
+        let videoAuthorized = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
+        let audioAuthorized = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+
+        switch type {
+        case .camera:
+            return videoAuthorized
+        case .microphone:
+            return audioAuthorized
+        case .cameraAndMicrophone:
+            return videoAuthorized && audioAuthorized
+        @unknown default:
+            return false
+        }
     }
 
     // MARK: - 下载逻辑
