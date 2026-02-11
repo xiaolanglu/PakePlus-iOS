@@ -177,6 +177,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
     /// 使用 URLSession 下载文件并弹出系统分享面板，让用户保存到「文件」或其他 App
     private func downloadFile(from url: URL) {
         print("开始下载文件: \(url.absoluteString)")
+        showDownloadStartedHint()
         let task = URLSession.shared.downloadTask(with: url) { [weak self] tempURL, response, error in
             if let error = error {
                 print("下载失败: \(error.localizedDescription)")
@@ -223,6 +224,41 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
 
         task.resume()
+    }
+
+    /// 显示「开始下载」提示（约 2 秒后自动消失）
+    private func showDownloadStartedHint() {
+        DispatchQueue.main.async {
+            guard let window = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .flatMap({ $0.windows })
+                .first(where: { $0.isKeyWindow }) else { return }
+
+            let label = UILabel()
+            label.text = "开始下载..."
+            label.font = .systemFont(ofSize: 15, weight: .medium)
+            label.textColor = .white
+            label.backgroundColor = .systemBlue
+            label.textAlignment = .center
+            label.layer.cornerRadius = 8
+            label.clipsToBounds = true
+            label.alpha = 0
+
+            let padding: CGFloat = 16
+            let topMargin: CGFloat = 20
+            label.sizeToFit()
+            label.frame.size.width += padding * 2
+            label.frame.size.height += padding
+            let yCenter = window.safeAreaInsets.top + label.frame.height / 2 + topMargin
+            label.center = CGPoint(x: window.bounds.midX, y: yCenter)
+
+            window.addSubview(label)
+
+            UIView.animate(withDuration: 0.25, animations: { label.alpha = 1 })
+            UIView.animate(withDuration: 0.25, delay: 1.75, options: [], animations: { label.alpha = 0 }) { _ in
+                label.removeFromSuperview()
+            }
+        }
     }
 
     /// 弹出系统分享面板，用户可选择保存到「文件」或分享到其它 App
