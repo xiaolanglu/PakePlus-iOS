@@ -1,7 +1,7 @@
-
 // very important, if you don't know what it is, don't touch it
 // 非常重要，不懂代码不要动，这里可以解决80%的问题，也可以生产1000+的bug
-const __pp_isBlobUrl = (url) => typeof url === 'string' && url.startsWith('blob:')
+const __pp_isBlobUrl = (url) =>
+    typeof url === 'string' && url.startsWith('blob:')
 
 const __pp_guessExtFromMime = (mime) => {
     const m = (mime || '').toLowerCase()
@@ -27,7 +27,8 @@ const __pp_readBlobAsBase64 = (blob) =>
             const comma = result.indexOf(',')
             resolve(comma >= 0 ? result.slice(comma + 1) : result)
         }
-        reader.onerror = () => reject(reader.error || new Error('read blob failed'))
+        reader.onerror = () =>
+            reject(reader.error || new Error('read blob failed'))
         reader.readAsDataURL(blob)
     })
 
@@ -61,7 +62,10 @@ const __pp_downloadBlobViaBridge = async (href, filename) => {
         })
 
         for (let i = 0; i < total; i++) {
-            const part = blob.slice(i * chunkSize, Math.min(blob.size, (i + 1) * chunkSize))
+            const part = blob.slice(
+                i * chunkSize,
+                Math.min(blob.size, (i + 1) * chunkSize)
+            )
             const base64 = await __pp_readBlobAsBase64(part)
             handler.postMessage({
                 action: 'chunk',
@@ -88,23 +92,26 @@ const __pp_downloadBlobViaBridge = async (href, filename) => {
 
 const hookClick = (e) => {
     const origin = e.target.closest('a')
-    const isBaseTargetBlank = document.querySelector('head base[target="_blank"]')
+    const isBaseTargetBlank = document.querySelector(
+        'head base[target="_blank"]'
+    )
     if (!origin || !origin.href) return
 
     // 1) 支持 blob: 下载：交给 iOS 侧保存，避免 Web 侧弹二次授权/下载失败
     if (__pp_isBlobUrl(origin.href)) {
         e.preventDefault()
-        __pp_downloadBlobViaBridge(origin.href, origin.getAttribute('download') || origin.download).then(
-            (ok) => {
-                // bridge 不可用或失败：降级为原始行为
-                if (!ok) location.href = origin.href
-            }
-        )
+        __pp_downloadBlobViaBridge(
+            origin.href,
+            origin.getAttribute('download') || origin.download
+        ).then((ok) => {
+            // bridge 不可用或失败：降级为原始行为
+            if (!ok) location.href = origin.href
+        })
         return
     }
 
     // 2) 原有逻辑：拦截 _blank / base[target=_blank]
-    if ((origin.target === '_blank') || (isBaseTargetBlank)) {
+    if (origin.target === '_blank' || isBaseTargetBlank) {
         e.preventDefault()
         location.href = origin.href
     }
