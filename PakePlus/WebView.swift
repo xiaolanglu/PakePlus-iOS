@@ -34,6 +34,8 @@ struct WebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.uiDelegate = context.coordinator
         webView.navigationDelegate = context.coordinator
+        // JS bridge: blob 下载
+        webView.configuration.userContentController.add(context.coordinator, name: "blobDownload")
 
         // debug script
         if debug, let debugScript = WebView.loadJSFile(named: "vConsole") {
@@ -106,7 +108,17 @@ struct WebView: UIViewRepresentable {
 }
 
 // swifui coordinator
-class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDelegate {
+class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+    private struct BlobDownloadState {
+        var filename: String
+        var mimeType: String
+        var totalChunks: Int
+        var receivedChunkIndexes: Set<Int>
+        var buffer: Data
+    }
+
+    private var blobDownloads: [String: BlobDownloadState] = [:]
+
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         // disable zoom
         return nil
@@ -181,6 +193,89 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
             return videoAuthorized && audioAuthorized
         @unknown default:
             return false
+        }
+    }
+
+    // MARK: - WKScriptMessageHandler（blob 下载桥接）
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "blobDownload" else { return }
+        guard let body = message.body as? [String: Any] else { return }
+
+        let action = (body["action"] as? String) ?? ""
+        let id = (body["id"] as? String) ?? ""
+        if id.isEmpty { return }
+
+        switch action {
+        case "start":
+            let filename = sanitizeFilename((body["filename"] as? String) ?? "download")
+            let mimeType = (body["mimeType"] as? String) ?? ""
+            let totalChunks = max(1, (body["totalChunks"] as? Int) ?? 1)
+            blobDownloads[id] = BlobDownloadState(
+                filename: filename,
+                mimeType: mimeType,
+                totalChunks: totalChunks,
+                receivedChunkIndexes: [],
+                buffer: Data()
+            )
+            showDownloadStartedHint()
+
+        case "chunk":
+            guard var state = blobDownloads[id] else { return }
+            guard let index = body["index"] as? Int else { return }
+            guard let base64 = body["data"] as? String else { return }
+
+            // 防止重复 chunk
+            if state.receivedChunkIndexes.contains(index) { return }
+            guard let chunkData = Data(base64Encoded: base64) else { return }
+
+            state.buffer.append(chunkData)
+            state.receivedChunkIndexes.insert(index)
+            blobDownloads[id] = state
+
+        case "finish":
+            guard let state = blobDownloads[id] else { return }
+            blobDownloads.removeValue(forKey: id)
+
+            // 只有收齐了才落盘
+            guard state.receivedChunkIndexes.count >= state.totalChunks else { return }
+            saveAndShareBlobData(state.buffer, filename: state.filename)
+
+        case "error":
+            blobDownloads.removeValue(forKey: id)
+            if let msg = body["message"] as? String, !msg.isEmpty {
+                print("blob 下载失败: \(msg)")
+            }
+
+        default:
+            return
+        }
+    }
+
+    private func sanitizeFilename(_ name: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "download" }
+        // 去掉路径分隔符，避免写文件异常
+        return trimmed
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: ":", with: "_")
+    }
+
+    private func saveAndShareBlobData(_ data: Data, filename: String) {
+        let fileManager = FileManager.default
+        let tempDir = fileManager.temporaryDirectory
+        let destinationURL = tempDir.appendingPathComponent(filename)
+
+        try? fileManager.removeItem(at: destinationURL)
+        do {
+            try data.write(to: destinationURL, options: [.atomic])
+        } catch {
+            print("保存 blob 文件失败: \(error.localizedDescription)")
+            return
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.presentShareSheet(for: destinationURL)
         }
     }
 
