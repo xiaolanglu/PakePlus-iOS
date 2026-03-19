@@ -144,6 +144,31 @@ const updateBundleId = async (newBundleId, launchImage) => {
                 /INFOPLIST_KEY_UILaunchStoryboardName = (.*?);/g,
                 ''
             )
+            // delete LaunchScreen.storyboard
+            fs.unlinkSync(
+                path.join(__dirname, '../PakePlus/LaunchScreen.storyboard')
+            )
+            // delete LaunchScreen.imageset
+            fs.unlinkSync(
+                path.join(
+                    __dirname,
+                    '../PakePlus/Assets.xcassets/LaunchScreen.imageset'
+                )
+            )
+            // delete LaunchScreen.imageset/Contents.json
+            fs.unlinkSync(
+                path.join(
+                    __dirname,
+                    '../PakePlus/Assets.xcassets/LaunchScreen.imageset/Contents.json'
+                )
+            )
+            // delete LaunchScreen.imageset/launch.jpg
+            fs.unlinkSync(
+                path.join(
+                    __dirname,
+                    '../PakePlus/Assets.xcassets/LaunchScreen.imageset/launch.jpg'
+                )
+            )
         }
         fs.writeFileSync(pbxprojPath, content)
         console.log(`✅ Updated Bundle ID to: ${newBundleId} success`)
