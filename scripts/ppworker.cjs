@@ -118,7 +118,7 @@ const setGithubEnv = (name, version, pubBody, isHtml) => {
 }
 
 // update ios applicationId
-const updateBundleId = async (newBundleId) => {
+const updateBundleId = async (newBundleId, launchImage) => {
     // Write back only if changes were made
     const pbxprojPath = path.join(
         __dirname,
@@ -131,6 +131,20 @@ const updateBundleId = async (newBundleId) => {
             /PRODUCT_BUNDLE_IDENTIFIER = (.*?);/g,
             `PRODUCT_BUNDLE_IDENTIFIER = ${newBundleId};`
         )
+        // clear project.pbxproj DisplayName
+        content = content.replaceAll(
+            /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
+            ''
+        )
+        // config LaunchScreen
+        if (launchImage) {
+            console.log('config LaunchScreen...')
+        } else {
+            content = content.replaceAll(
+                /INFOPLIST_KEY_UILaunchStoryboardName = (.*?);/g,
+                ''
+            )
+        }
         fs.writeFileSync(pbxprojPath, content)
         console.log(`✅ Updated Bundle ID to: ${newBundleId} success`)
     } catch (error) {
@@ -185,7 +199,7 @@ const updateInfoPlist = async (
 }
 
 const main = async () => {
-    const { webview } = ppconfig.phone
+    const { webview, launchImage } = ppconfig.phone
     const {
         name,
         showName,
@@ -208,7 +222,7 @@ const main = async () => {
     // await updateWebEnv(webview)
 
     // update ios applicationId
-    await updateBundleId(id)
+    await updateBundleId(id, launchImage)
 
     // set github env
     setGithubEnv(name, version, pubBody, isHtml)
