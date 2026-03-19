@@ -149,25 +149,12 @@ const updateBundleId = async (newBundleId, launchImage) => {
                 path.join(__dirname, '../PakePlus/LaunchScreen.storyboard')
             )
             // delete LaunchScreen.imageset
-            fs.unlinkSync(
+            fs.rmSync(
                 path.join(
                     __dirname,
                     '../PakePlus/Assets.xcassets/LaunchScreen.imageset'
-                )
-            )
-            // delete LaunchScreen.imageset/Contents.json
-            fs.unlinkSync(
-                path.join(
-                    __dirname,
-                    '../PakePlus/Assets.xcassets/LaunchScreen.imageset/Contents.json'
-                )
-            )
-            // delete LaunchScreen.imageset/launch.jpg
-            fs.unlinkSync(
-                path.join(
-                    __dirname,
-                    '../PakePlus/Assets.xcassets/LaunchScreen.imageset/launch.jpg'
-                )
+                ),
+                { recursive: true, force: true }
             )
         }
         fs.writeFileSync(pbxprojPath, content)
