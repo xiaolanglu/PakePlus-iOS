@@ -14,6 +14,8 @@ struct WebView: UIViewRepresentable {
     let webUrl: URL
     // is debug
     let debug: Bool
+    // on load finished
+    let onLoadFinished: (() -> Void)?
     // userAgent
     let userAgent = Bundle.main.object(forInfoDictionaryKey: "USERAGENT") as? String ?? ""
 
@@ -103,12 +105,22 @@ struct WebView: UIViewRepresentable {
 
     // add coordinator to prevent zoom
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(onLoadFinished: onLoadFinished)
     }
 }
 
 // swifui coordinator
 class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+    private let onLoadFinished: (() -> Void)?
+    private var didFinishMainFrameOnce = false
+
+    // init
+    init(onLoadFinished: (() -> Void)?) {
+        self.onLoadFinished = onLoadFinished
+        super.init()
+    }
+
+    // blob download state
     private struct BlobDownloadState {
         var filename: String
         var mimeType: String
@@ -117,8 +129,10 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         var buffer: Data
     }
 
+    // blob downloads
     private var blobDownloads: [String: BlobDownloadState] = [:]
 
+    // disable zoom
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         // disable zoom
         return nil
@@ -140,14 +154,14 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
 
     // MARK: - WKNavigationDelegate
 
-    // 拦截导航，识别常见文件类型并触发下载
+    // intercept navigation, recognize common file types and trigger download
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else {
             decisionHandler(.allow)
             return
         }
 
-        // 仅对用户点击链接触发下载，其它导航正常加载
+        // only trigger download when user clicks link, other navigation load normally
         if navigationAction.navigationType == .linkActivated, shouldDownload(url: url) {
             decisionHandler(.cancel)
             downloadFile(from: url)
@@ -158,11 +172,26 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("didFinish navigation: \(String(describing: webView.url))")
-        // currentURL = webView.url
+        // only respond to main frame, and only trigger once, avoid iframe / multiple redirects causing repeated hiding
+        guard !didFinishMainFrameOnce else { return }
+        didFinishMainFrameOnce = true
+
+        DispatchQueue.main.async { [onLoadFinished] in
+            onLoadFinished?()
+        }
     }
 
-    // MARK: - 媒体（摄像头 / 麦克风）权限
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        // avoid certain loading failures causing it to stay on the launch screen/loading
+        guard !didFinishMainFrameOnce else { return }
+        didFinishMainFrameOnce = true
+
+        DispatchQueue.main.async { [onLoadFinished] in
+            onLoadFinished?()
+        }
+    }
+
+    // MARK: - media (camera / microphone) permissions
 
     @available(iOS 15.0, *)
     func webView(_ webView: WKWebView,
@@ -170,16 +199,16 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
                  initiatedByFrame frame: WKFrameInfo,
                  type: WKMediaCaptureType,
                  decisionHandler: @escaping (WKPermissionDecision) -> Void) {
-        // 如果 APP 已经拿到系统层的摄像头/麦克风权限，则直接为网页授权，不再弹出网页权限弹窗
+        // if app has already got the camera/microphone permission from system layer, directly authorize the web, no need to show web permission popup
         if hasAppMediaPermission(for: type) {
             decisionHandler(.grant)
         } else {
-            // APP 还没有对应权限时，保持默认行为（由系统决定是否弹框）
+            // if app doesn't have the corresponding permission, keep default behavior (system decides whether to show popup)
             decisionHandler(.prompt)
         }
     }
 
-    /// 判断 APP 是否已经拥有对应的系统媒体权限
+    /// check if app has already got the corresponding system media permission
     private func hasAppMediaPermission(for type: WKMediaCaptureType) -> Bool {
         let videoAuthorized = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
         let audioAuthorized = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
@@ -196,7 +225,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
     }
 
-    // MARK: - WKScriptMessageHandler（blob 下载桥接）
+    // MARK: - WKScriptMessageHandler (blob download bridge)
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.name == "blobDownload" else { return }
@@ -225,7 +254,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
             guard let index = body["index"] as? Int else { return }
             guard let base64 = body["data"] as? String else { return }
 
-            // 防止重复 chunk
+            // prevent duplicate chunk
             if state.receivedChunkIndexes.contains(index) { return }
             guard let chunkData = Data(base64Encoded: base64) else { return }
 
@@ -237,14 +266,14 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
             guard let state = blobDownloads[id] else { return }
             blobDownloads.removeValue(forKey: id)
 
-            // 只有收齐了才落盘
+            // only save when all chunks are received
             guard state.receivedChunkIndexes.count >= state.totalChunks else { return }
             saveAndShareBlobData(state.buffer, filename: state.filename)
 
         case "error":
             blobDownloads.removeValue(forKey: id)
             if let msg = body["message"] as? String, !msg.isEmpty {
-                print("blob 下载失败: \(msg)")
+                print("blob download failed: \(msg)")
             }
 
         default:
@@ -255,7 +284,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
     private func sanitizeFilename(_ name: String) -> String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty { return "download" }
-        // 去掉路径分隔符，避免写文件异常
+        // remove path separator, avoid writing file exception
         return trimmed
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: ":", with: "_")
@@ -270,7 +299,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         do {
             try data.write(to: destinationURL, options: [.atomic])
         } catch {
-            print("保存 blob 文件失败: \(error.localizedDescription)")
+            print("save blob file failed: \(error.localizedDescription)")
             return
         }
 
@@ -280,7 +309,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
     }
 
 
-    /// 判断 URL 是否是需要下载的常见文件类型
+    /// check if url is a common file type that needs to be downloaded
     private func shouldDownload(url: URL) -> Bool {
         let pathExtension = url.pathExtension.lowercased()
         if pathExtension.isEmpty {

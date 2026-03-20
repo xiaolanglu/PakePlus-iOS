@@ -46,7 +46,11 @@ struct TabBarView: View {
                 .padding(.vertical, 6)
                 
                 // WebView for the selected URL
-                WebView(webUrl: URL(string: urls[selectedTab])!, debug: false)
+                WebView(
+                    webUrl: URL(string: urls[selectedTab])!,
+                    debug: false,
+                    onLoadFinished: nil
+                )
                     .edgesIgnoringSafeArea(.top)
                 
                 // Bottom Tab Bar
