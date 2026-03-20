@@ -139,6 +139,14 @@ const updateBundleId = async (newBundleId, launchImage) => {
         // config LaunchScreen
         if (launchImage) {
             console.log('config LaunchScreen...')
+            // copy launchImage to LaunchScreen.imageset
+            const launchPath = path.join(__dirname, '../launch.jpg')
+            const launchImagePath = path.join(
+                __dirname,
+                '../PakePlus/Assets.xcassets/LaunchScreen.imageset/launch.jpg'
+            )
+            fs.copyFileSync(launchPath, launchImagePath)
+            console.log('✅ Copied launchImage to LaunchScreen.imageset')
         } else {
             content = content.replaceAll(
                 /INFOPLIST_KEY_UILaunchStoryboardName = (.*?);/g,
