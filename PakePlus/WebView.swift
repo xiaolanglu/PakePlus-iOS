@@ -334,20 +334,20 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
 
     /// 使用 URLSession 下载文件并弹出系统分享面板，让用户保存到「文件」或其他 App
     private func downloadFile(from url: URL) {
-        print("开始下载文件: \(url.absoluteString)")
+        print("start downloading file: \(url.absoluteString)")
         showDownloadStartedHint()
         let task = URLSession.shared.downloadTask(with: url) { [weak self] tempURL, response, error in
             if let error = error {
-                print("下载失败: \(error.localizedDescription)")
+                print("download failed: \(error.localizedDescription)")
                 return
             }
 
             guard let tempURL = tempURL else {
-                print("下载失败: 临时文件不存在")
+                print("download failed: temporary file not found")
                 return
             }
 
-            // 从响应或 URL 中获取文件名
+            // get file name from response or URL
             let suggestedName = (response as? HTTPURLResponse)?
                 .allHeaderFields["Content-Disposition"] as? String
 
@@ -364,17 +364,17 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
             let tempDir = fileManager.temporaryDirectory
             let destinationURL = tempDir.appendingPathComponent(fileName)
 
-            // 若已存在同名文件，先删除
+            // if file already exists, remove it
             try? fileManager.removeItem(at: destinationURL)
 
             do {
                 try fileManager.moveItem(at: tempURL, to: destinationURL)
             } catch {
-                print("移动下载文件失败: \(error.localizedDescription)")
+                print("failed to move download file: \(error.localizedDescription)")
                 return
             }
 
-            print("下载完成，临时保存路径: \(destinationURL.path)")
+            print("download finished, temporary save path: \(destinationURL.path)")
 
             DispatchQueue.main.async {
                 self?.presentShareSheet(for: destinationURL)
@@ -384,7 +384,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         task.resume()
     }
 
-    /// 显示「开始下载」提示（约 2 秒后自动消失）
+    /// show "start downloading" hint (disappears after 2 seconds)
     private func showDownloadStartedHint() {
         DispatchQueue.main.async {
             guard let window = UIApplication.shared.connectedScenes
@@ -393,7 +393,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
                 .first(where: { $0.isKeyWindow }) else { return }
 
             let label = UILabel()
-            label.text = "开始下载..."
+            label.text = "start downloading..."
             label.font = .systemFont(ofSize: 15, weight: .medium)
             label.textColor = .white
             label.backgroundColor = .systemBlue
@@ -419,7 +419,7 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
     }
 
-    /// 弹出系统分享面板，用户可选择保存到「文件」或分享到其它 App
+    // present system share sheet, user can choose to save to "file" or share to other apps
     private func presentShareSheet(for fileURL: URL) {
         let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
         activityVC.popoverPresentationController?.sourceView = UIApplication.shared.windows.first { $0.isKeyWindow }
@@ -427,11 +427,11 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         if let topVC = Coordinator.topViewController() {
             topVC.present(activityVC, animated: true, completion: nil)
         } else {
-            print("无法找到顶层视图控制器，无法展示分享面板")
+            print("top view controller not found, cannot show share sheet")
         }
     }
 
-    /// 获取当前顶层 UIViewController
+    // get current top view controller
     private static func topViewController(base: UIViewController? = UIApplication.shared.connectedScenes
         .compactMap { $0 as? UIWindowScene }
         .flatMap { $0.windows }
