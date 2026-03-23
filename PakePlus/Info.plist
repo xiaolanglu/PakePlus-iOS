@@ -8,6 +8,8 @@
 	<false/>
 	<key>FULLSCREEN</key>
 	<false/>
+    <key>LAUNCHIMAGE</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

@@ -118,7 +118,7 @@ const setGithubEnv = (name, version, pubBody, isHtml) => {
 }
 
 // update ios applicationId
-const updateBundleId = async (newBundleId, launchImage) => {
+const updateBundleId = async (newBundleId) => {
     // Write back only if changes were made
     const pbxprojPath = path.join(
         __dirname,
@@ -136,35 +136,6 @@ const updateBundleId = async (newBundleId, launchImage) => {
             /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
             ''
         )
-        // config LaunchScreen
-        if (launchImage) {
-            console.log('config LaunchScreen...')
-            // copy launchImage to LaunchScreen.imageset
-            const launchPath = path.join(__dirname, '../launch.jpg')
-            const launchImagePath = path.join(
-                __dirname,
-                '../PakePlus/Assets.xcassets/LaunchScreen.imageset/launch.jpg'
-            )
-            fs.copyFileSync(launchPath, launchImagePath)
-            console.log('✅ Copied launchImage to LaunchScreen.imageset')
-        } else {
-            content = content.replaceAll(
-                /INFOPLIST_KEY_UILaunchStoryboardName = (.*?);/g,
-                ''
-            )
-            // delete LaunchScreen.storyboard
-            fs.unlinkSync(
-                path.join(__dirname, '../PakePlus/LaunchScreen.storyboard')
-            )
-            // delete LaunchScreen.imageset
-            fs.rmSync(
-                path.join(
-                    __dirname,
-                    '../PakePlus/Assets.xcassets/LaunchScreen.imageset'
-                ),
-                { recursive: true, force: true }
-            )
-        }
         fs.writeFileSync(pbxprojPath, content)
         console.log(`✅ Updated Bundle ID to: ${newBundleId} success`)
     } catch (error) {
@@ -179,7 +150,8 @@ const updateInfoPlist = async (
     webUrl,
     isHtml,
     safeArea,
-    userAgent
+    userAgent,
+    launchImage
 ) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
@@ -213,6 +185,12 @@ const updateInfoPlist = async (
     } else {
         infoPlistData.FULLSCREEN = false
     }
+    // update launchImage
+    if (launchImage) {
+        infoPlistData.LAUNCHIMAGE = true
+    } else {
+        infoPlistData.LAUNCHIMAGE = false
+    }
     // log
     console.log('new infoPlist: ', infoPlistData)
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
@@ -242,14 +220,22 @@ const main = async () => {
     // await updateWebEnv(webview)
 
     // update ios applicationId
-    await updateBundleId(id, launchImage)
+    await updateBundleId(id)
 
     // set github env
     setGithubEnv(name, version, pubBody, isHtml)
 
     // parse Info.plist and update baseUrl
     const userAgent = webview.userAgent
-    await updateInfoPlist(showName, debug, webUrl, isHtml, safeArea, userAgent)
+    await updateInfoPlist(
+        showName,
+        debug,
+        webUrl,
+        isHtml,
+        safeArea,
+        userAgent,
+        launchImage
+    )
 
     // success
     console.log('✅ Worker Success')
