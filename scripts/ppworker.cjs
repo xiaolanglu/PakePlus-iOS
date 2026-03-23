@@ -188,8 +188,26 @@ const updateInfoPlist = async (
     // update launchImage
     if (launchImage) {
         infoPlistData.LAUNCHIMAGE = true
+        console.log('config LaunchScreen...')
+        // copy launchImage to LaunchScreen.imageset
+        const launchPath = path.join(__dirname, '../launch.jpg')
+        const launchImagePath = path.join(
+            __dirname,
+            '../PakePlus/Assets.xcassets/LaunchScreen.imageset/launch.jpg'
+        )
+        fs.copyFileSync(launchPath, launchImagePath)
+        console.log('✅ Copied launchImage to LaunchScreen.imageset')
     } else {
         infoPlistData.LAUNCHIMAGE = false
+        // delete LaunchScreen.imageset
+        fs.rmSync(
+            path.join(
+                __dirname,
+                '../PakePlus/Assets.xcassets/LaunchScreen.imageset'
+            ),
+            { recursive: true, force: true }
+        )
+        console.log('remove LaunchScreen...')
     }
     // log
     console.log('new infoPlist: ', infoPlistData)
