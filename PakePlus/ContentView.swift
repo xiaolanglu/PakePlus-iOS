@@ -12,6 +12,7 @@ struct ContentView: View {
     let webUrl = Bundle.main.object(forInfoDictionaryKey: "WEBURL") as? String ?? ""
     let debug = Bundle.main.object(forInfoDictionaryKey: "DEBUG") as? Bool ?? false
     let fullScreen = Bundle.main.object(forInfoDictionaryKey: "FULLSCREEN") as? Bool ?? false
+    let launchImage = Bundle.main.object(forInfoDictionaryKey: "LAUNCHIMAGE") as? Bool ?? false
     
     @State private var isWebLoaded: Bool = false
 
@@ -30,7 +31,7 @@ struct ContentView: View {
             .allowsHitTesting(isWebLoaded)
             
             // loading screen
-            if !isWebLoaded {
+            if !isWebLoaded && launchImage {
                 Image("LaunchScreen")
                     .resizable()
                     .scaledToFill()
