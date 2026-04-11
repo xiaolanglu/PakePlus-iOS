@@ -151,7 +151,8 @@ const updateInfoPlist = async (
     isHtml,
     safeArea,
     userAgent,
-    launchImage
+    launchImage,
+    screenOn
 ) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
@@ -209,13 +210,19 @@ const updateInfoPlist = async (
         )
         console.log('remove LaunchScreen...')
     }
+    // update screenOn
+    if (screenOn) {
+        infoPlistData.SCREENON = true
+    } else {
+        infoPlistData.SCREENON = false
+    }
     // log
     console.log('new infoPlist: ', infoPlistData)
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
 }
 
 const main = async () => {
-    const { webview, launchImage } = ppconfig.phone
+    const { webview, launchImage, screenOn } = ppconfig.phone
     const {
         name,
         showName,
@@ -252,7 +259,8 @@ const main = async () => {
         isHtml,
         safeArea,
         userAgent,
-        launchImage
+        launchImage,
+        screenOn
     )
 
     // success

@@ -8,6 +8,8 @@
 	<false/>
 	<key>FULLSCREEN</key>
 	<false/>
+	<key>SCREENON</key>
+	<true/>
 	<key>LAUNCHIMAGE</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
