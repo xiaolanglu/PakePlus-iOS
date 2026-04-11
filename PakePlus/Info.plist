@@ -6,6 +6,8 @@
 	<false/>
 	<key>FULLSCREEN</key>
 	<false/>
+    <key>LOCATION</key>
+	<true/>
 	<key>LAUNCHIMAGE</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
