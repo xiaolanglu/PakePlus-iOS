@@ -6,8 +6,8 @@
 	<false/>
 	<key>FULLSCREEN</key>
 	<false/>
-    <key>LOCATION</key>
-	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>允许获取您的大致位置信息</string>
 	<key>LAUNCHIMAGE</key>
 	<false/>
 	<key>NSAppTransportSecurity</key>
