@@ -8,6 +8,7 @@
 import SwiftUI
 import WebKit
 import AVFoundation
+import CoreLocation
 
 struct WebView: UIViewRepresentable {
     // wkwebview url
@@ -98,6 +99,8 @@ struct WebView: UIViewRepresentable {
         leftSwipeGesture.direction = .left
         webView.addGestureRecognizer(leftSwipeGesture)
 
+        context.coordinator.prepareWebGeolocationAuthorization()
+
         return webView
     }
 
@@ -110,9 +113,10 @@ struct WebView: UIViewRepresentable {
 }
 
 // swifui coordinator
-class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, CLLocationManagerDelegate {
     private let onLoadFinished: (() -> Void)?
     private var didFinishMainFrameOnce = false
+    private var locationManager: CLLocationManager?
 
     // init
     init(onLoadFinished: (() -> Void)?) {
@@ -200,37 +204,58 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
     }
 
-    // MARK: - media (camera / microphone) permissions
+    // MARK: - WKUIDelegate: system vs web permissions
 
+    /// 摄像头 / 麦克风：系统层已授权则直接 `.grant`（不再出现网页内二次权限面板）；系统已拒绝或受限则 `.deny`；尚未决定则 `.prompt`。
+    /// 网页地理定位 `navigator.geolocation`：公开 `WKUIDelegate` 无对应决策方法，无法像媒体这样 `.grant`；仅能通过 `NSLocationWhenInUseUsageDescription` 与 `prepareWebGeolocationAuthorization()` 尽早完成系统层授权。
     @available(iOS 15.0, *)
     func webView(_ webView: WKWebView,
                  requestMediaCapturePermissionFor origin: WKSecurityOrigin,
                  initiatedByFrame frame: WKFrameInfo,
                  type: WKMediaCaptureType,
                  decisionHandler: @escaping (WKPermissionDecision) -> Void) {
-        // if app has already got the camera/microphone permission from system layer, directly authorize the web, no need to show web permission popup
-        if hasAppMediaPermission(for: type) {
-            decisionHandler(.grant)
-        } else {
-            // if app doesn't have the corresponding permission, keep default behavior (system decides whether to show popup)
-            decisionHandler(.prompt)
-        }
+        decisionHandler(permissionDecisionForMediaCapture(type: type))
     }
 
-    /// check if app has already got the corresponding system media permission
-    private func hasAppMediaPermission(for type: WKMediaCaptureType) -> Bool {
-        let videoAuthorized = AVCaptureDevice.authorizationStatus(for: .video) == .authorized
-        let audioAuthorized = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+    @available(iOS 15.0, *)
+    private func permissionDecisionForMediaCapture(type: WKMediaCaptureType) -> WKPermissionDecision {
+        let video = AVCaptureDevice.authorizationStatus(for: .video)
+        let audio = AVCaptureDevice.authorizationStatus(for: .audio)
 
+        let authorized: Bool
+        let deniedOrRestricted: Bool
         switch type {
         case .camera:
-            return videoAuthorized
+            authorized = video == .authorized
+            deniedOrRestricted = video == .denied || video == .restricted
         case .microphone:
-            return audioAuthorized
+            authorized = audio == .authorized
+            deniedOrRestricted = audio == .denied || audio == .restricted
         case .cameraAndMicrophone:
-            return videoAuthorized && audioAuthorized
+            authorized = video == .authorized && audio == .authorized
+            deniedOrRestricted = video == .denied || video == .restricted || audio == .denied || audio == .restricted
         @unknown default:
-            return false
+            return .prompt
+        }
+
+        if authorized { return .grant }
+        if deniedOrRestricted { return .deny }
+        return .prompt
+    }
+
+    /// 在宿主侧请求「使用期间」定位授权，供 WKWebView 内 Geolocation API 使用（需配合 `NSLocationWhenInUseUsageDescription`）。
+    func prepareWebGeolocationAuthorization() {
+        guard locationManager == nil else { return }
+        let manager = CLLocationManager()
+        manager.delegate = self
+        locationManager = manager
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+        case .authorizedAlways, .authorizedWhenInUse, .denied, .restricted:
+            break
+        @unknown default:
+            break
         }
     }
 

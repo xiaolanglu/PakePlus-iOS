@@ -118,7 +118,7 @@ const setGithubEnv = (name, version, pubBody, isHtml) => {
 }
 
 // update ios applicationId
-const updateBundleId = async (newBundleId) => {
+const updateProject = async (newBundleId, showName, direction = 'default') => {
     // Write back only if changes were made
     const pbxprojPath = path.join(
         __dirname,
@@ -127,17 +127,43 @@ const updateBundleId = async (newBundleId) => {
     try {
         console.log(`Updating Bundle ID to ${newBundleId}...`)
         let content = fs.readFileSync(pbxprojPath, 'utf8')
+        // update bundleId
         content = content.replaceAll(
             /PRODUCT_BUNDLE_IDENTIFIER = (.*?);/g,
             `PRODUCT_BUNDLE_IDENTIFIER = ${newBundleId};`
         )
         // clear project.pbxproj DisplayName
+        console.log(`Updating Display Name to ${showName}...`)
         content = content.replaceAll(
             /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
             ''
         )
+        // content = content.replaceAll(
+        //     /INFOPLIST_KEY_CFBundleDisplayName = (.*?);/g,
+        //     `INFOPLIST_KEY_CFBundleDisplayName = ${showName};`
+        // )
+        // update direction
+        if (direction === 'default') {
+            content = content.replaceAll(
+                /INFOPLIST_KEY_UISupportedInterfaceOrientations = (.*?);/g,
+                `INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";`
+            )
+        } else if (direction === 'vertical') {
+            content = content.replaceAll(
+                /INFOPLIST_KEY_UISupportedInterfaceOrientations = (.*?);/g,
+                `INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait";`
+            )
+        } else if (direction === 'horizontal') {
+            content = content.replaceAll(
+                /INFOPLIST_KEY_UISupportedInterfaceOrientations = (.*?);/g,
+                `INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";`
+            )
+        } else {
+            console.log('❌ Invalid direction:', direction)
+        }
+        // update
         fs.writeFileSync(pbxprojPath, content)
-        console.log(`✅ Updated Bundle ID to: ${newBundleId} success`)
+        console.log(`✅ Updated project success`)
     } catch (error) {
         console.error('Error updating Bundle ID:', error)
     }
@@ -151,7 +177,8 @@ const updateInfoPlist = async (
     isHtml,
     safeArea,
     userAgent,
-    launchImage
+    launchImage,
+    screenOn
 ) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
@@ -209,13 +236,19 @@ const updateInfoPlist = async (
         )
         console.log('remove LaunchScreen...')
     }
+    // update screenOn
+    if (screenOn) {
+        infoPlistData.SCREENON = true
+    } else {
+        infoPlistData.SCREENON = false
+    }
     // log
     console.log('new infoPlist: ', infoPlistData)
     fs.writeFileSync(infoPlistPath, plist.build(infoPlistData))
 }
 
 const main = async () => {
-    const { webview, launchImage } = ppconfig.phone
+    const { webview, launchImage, screenOn, direction } = ppconfig.phone
     const {
         name,
         showName,
@@ -238,7 +271,7 @@ const main = async () => {
     // await updateWebEnv(webview)
 
     // update ios applicationId
-    await updateBundleId(id)
+    await updateProject(id, showName, direction)
 
     // set github env
     setGithubEnv(name, version, pubBody, isHtml)
@@ -252,7 +285,8 @@ const main = async () => {
         isHtml,
         safeArea,
         userAgent,
-        launchImage
+        launchImage,
+        screenOn
     )
 
     // success
