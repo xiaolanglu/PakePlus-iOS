@@ -161,6 +161,15 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
             return
         }
 
+        // handle special schemes (tel/mailto/sms/etc.) by handing off to system.
+        // Note: some pages trigger these via JS (location.href/window.open), which becomes `.other` instead of `.linkActivated`.
+        if let scheme = url.scheme?.lowercased(),
+           isExternalAppScheme(scheme) {
+            decisionHandler(.cancel)
+            openExternalURL(url)
+            return
+        }
+
         // only trigger download when user clicks link, other navigation load normally
         if navigationAction.navigationType == .linkActivated, shouldDownload(url: url) {
             decisionHandler(.cancel)
@@ -330,6 +339,21 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         ]
 
         return downloadableExtensions.contains(pathExtension)
+    }
+
+    private func isExternalAppScheme(_ scheme: String) -> Bool {
+        switch scheme {
+        case "tel", "mailto", "sms", "facetime", "facetime-audio":
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func openExternalURL(_ url: URL) {
+        DispatchQueue.main.async {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
     }
 
     /// 使用 URLSession 下载文件并弹出系统分享面板，让用户保存到「文件」或其他 App
