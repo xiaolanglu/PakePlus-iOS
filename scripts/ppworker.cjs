@@ -248,7 +248,17 @@ const updateInfoPlist = async (
 }
 
 const main = async () => {
-    const { webview, launchImage, screenOn, direction } = ppconfig.phone
+    const {
+        webview,
+        launchImage,
+        screenOn,
+        direction,
+        download,
+        internet,
+        position,
+        callPhone,
+    } = ppconfig.phone
+
     const {
         name,
         showName,
@@ -278,6 +288,7 @@ const main = async () => {
 
     // parse Info.plist and update baseUrl
     const userAgent = webview.userAgent
+    // update Info.plist
     await updateInfoPlist(
         showName,
         debug,
