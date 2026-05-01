@@ -26,6 +26,11 @@ struct WebView: UIViewRepresentable {
         webConfiguration.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
         webConfiguration.allowsInlineMediaPlayback = true
         webConfiguration.allowsPictureInPictureMediaPlayback = true
+        webConfiguration.ignoresViewportScaleLimits = true
+        webConfiguration.allowsInlineMediaPlayback = true
+        webConfiguration.allowsAirPlayForMediaPlayback = true
+        webConfiguration.allowsPictureInPictureMediaPlayback = true
+        webConfiguration.selectionGranularity = .character
         // enable developer extras
         if #available(iOS 16.4, *) {
             webConfiguration.preferences.setValue(true, forKey: "developerExtrasEnabled")
