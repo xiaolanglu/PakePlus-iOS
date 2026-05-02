@@ -223,15 +223,15 @@ const updateInfoPlist = async (
     if (startMethod === 'password' || startMethod === 'oncePwd') {
         infoPlistData.WEBURL = 'https://www.password.com/'
         fs.copySync(
-            path.join(__dirname, './www/*'),
-            path.join(__dirname, '../PakePlus/*')
+            path.join(__dirname, './www'),
+            path.join(__dirname, '../PakePlus')
         )
         console.log(`📦 HTML copied to PakePlus`)
     } else if (isHtml) {
         infoPlistData.WEBURL = 'https://www.pakeplus.com/'
         fs.copySync(
-            path.join(__dirname, './www/*'),
-            path.join(__dirname, '../PakePlus/*')
+            path.join(__dirname, './www'),
+            path.join(__dirname, '../PakePlus')
         )
         console.log(`📦 HTML copied to PakePlus`)
     } else {
