@@ -42,7 +42,11 @@ struct WebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.uiDelegate = context.coordinator
         webView.navigationDelegate = context.coordinator
-        // JS bridge: blob 下载
+        // transparent background
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        // JS bridge: blob download
         webView.configuration.userContentController.add(context.coordinator, name: "blobDownload")
 
         // debug script
