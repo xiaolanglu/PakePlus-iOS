@@ -5,10 +5,10 @@
 //  Created by Song on 2025/3/30.
 //
 
-import SwiftUI
-import WebKit
 import AVFoundation
 import CoreLocation
+import SwiftUI
+import WebKit
 
 struct WebView: UIViewRepresentable {
     // wkwebview url
@@ -86,6 +86,10 @@ struct WebView: UIViewRepresentable {
         if webUrl.host?.contains("pakeplus.com") == true {
             // load html file
             if let url = Bundle.main.url(forResource: "index", withExtension: "html") {
+                webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            }
+        } else if webUrl.host?.contains("password.com") == true {
+            if let url = Bundle.main.url(forResource: "pppwd", withExtension: "html") {
                 webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
             }
         } else {
@@ -173,7 +177,8 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         // handle special schemes (tel/mailto/sms/etc.) by handing off to system.
         // Note: some pages trigger these via JS (location.href/window.open), which becomes `.other` instead of `.linkActivated`.
         if let scheme = url.scheme?.lowercased(),
-           isExternalAppScheme(scheme) {
+           isExternalAppScheme(scheme)
+        {
             decisionHandler(.cancel)
             openExternalURL(url)
             return
@@ -218,7 +223,8 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
                  requestMediaCapturePermissionFor origin: WKSecurityOrigin,
                  initiatedByFrame frame: WKFrameInfo,
                  type: WKMediaCaptureType,
-                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void)
+    {
         decisionHandler(permissionDecisionForMediaCapture(type: type))
     }
 
@@ -347,7 +353,6 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
         }
     }
 
-
     /// check if url is a common file type that needs to be downloaded
     private func shouldDownload(url: URL) -> Bool {
         let pathExtension = url.pathExtension.lowercased()
@@ -407,7 +412,8 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
 
             let fileName: String
             if let suggestedName,
-               let range = suggestedName.range(of: "filename=") {
+               let range = suggestedName.range(of: "filename=")
+            {
                 let namePart = String(suggestedName[range.upperBound...]).trimmingCharacters(in: CharacterSet(charactersIn: "\"; "))
                 fileName = namePart.isEmpty ? url.lastPathComponent : namePart
             } else {
@@ -489,8 +495,8 @@ class Coordinator: NSObject, UIScrollViewDelegate, WKNavigationDelegate, WKUIDel
     private static func topViewController(base: UIViewController? = UIApplication.shared.connectedScenes
         .compactMap { $0 as? UIWindowScene }
         .flatMap { $0.windows }
-        .first(where: { $0.isKeyWindow })?.rootViewController) -> UIViewController? {
-
+        .first(where: { $0.isKeyWindow })?.rootViewController) -> UIViewController?
+    {
         if let nav = base as? UINavigationController {
             return topViewController(base: nav.visibleViewController)
         }

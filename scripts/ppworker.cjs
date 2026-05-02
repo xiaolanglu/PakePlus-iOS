@@ -117,6 +117,39 @@ const setGithubEnv = (name, version, pubBody, isHtml) => {
     console.log('setGithubEnv success')
 }
 
+// update pppwd.html
+const updatePPPwdHtml = (
+    startMethod,
+    startPwd,
+    pwdTitle,
+    pwdBtn,
+    pwdPlace,
+    pwdTip,
+    pwdError,
+    pwdStyle,
+    pwdTheme,
+    webUrl,
+    isHtml
+) => {
+    console.log('updatePPPwdHtml......')
+    const indexHtmlPath = path.join(__dirname, './www/pppwd.html')
+    const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8')
+    const targetUrl = isHtml ? './index.html' : webUrl
+    const newIndexHtml = indexHtml
+        .replaceAll('startMethod', startMethod)
+        .replaceAll('startPwd', startPwd || '123456')
+        .replaceAll('pwdTitle', pwdTitle || '请输入密码')
+        .replaceAll('pwdBtn', pwdBtn || '验证')
+        .replaceAll('pwdPlace', pwdPlace || '')
+        .replaceAll('pwdTip', pwdTip || '')
+        .replaceAll('pwdError', pwdError || '密码错误')
+        .replaceAll('pwdStyle', pwdStyle || 'flat')
+        .replaceAll('pwdTheme', pwdTheme || 'dark')
+        .replaceAll('https://pakeplus.com/', targetUrl)
+    fs.writeFileSync(indexHtmlPath, newIndexHtml)
+    console.log('updatePPPwdHtml success')
+}
+
 // update ios applicationId
 const updateProject = async (newBundleId, showName, direction = 'default') => {
     // Write back only if changes were made
@@ -178,7 +211,8 @@ const updateInfoPlist = async (
     safeArea,
     userAgent,
     launchImage,
-    screenOn
+    screenOn,
+    startMethod
 ) => {
     const infoPlistPath = path.join(__dirname, '../PakePlus/Info.plist')
     const infoPlist = fs.readFileSync(infoPlistPath, 'utf8')
@@ -186,12 +220,23 @@ const updateInfoPlist = async (
     // update showName
     infoPlistData.CFBundleDisplayName = showName
     // is html
-    if (isHtml) {
+    if (startMethod === 'password' || startMethod === 'oncePwd') {
+        infoPlistData.WEBURL = 'https://www.password.com/'
+    } else if (isHtml) {
         infoPlistData.WEBURL = 'https://www.pakeplus.com/'
     } else {
         infoPlistData.WEBURL = webUrl
         // remove index.html
         fs.unlinkSync(path.join(__dirname, '../PakePlus/index.html'))
+    }
+    // if is html file
+    if (isHtml) {
+        // copy www/* to PakePlus/www
+        fs.copySync(
+            path.join(__dirname, './www/*'),
+            path.join(__dirname, '../PakePlus/*')
+        )
+        console.log(`📦 HTML copied to PakePlus/www`)
     }
     // update debug
     if (debug) {
@@ -253,10 +298,15 @@ const main = async () => {
         launchImage,
         screenOn,
         direction,
-        download,
-        internet,
-        position,
-        callPhone,
+        startMethod,
+        startPwd,
+        pwdTitle,
+        pwdBtn,
+        pwdPlace,
+        pwdTip,
+        pwdError,
+        pwdStyle,
+        pwdTheme,
     } = ppconfig.phone
 
     const {
@@ -277,8 +327,20 @@ const main = async () => {
     // Update web URL if provided
     await updateContentView(safeArea)
 
-    // update debug
-    // await updateWebEnv(webview)
+    // update pppwd.html
+    updatePPPwdHtml(
+        startMethod,
+        startPwd,
+        pwdTitle,
+        pwdBtn,
+        pwdPlace,
+        pwdTip,
+        pwdError,
+        pwdStyle,
+        pwdTheme,
+        webUrl,
+        isHtml
+    )
 
     // update ios applicationId
     await updateProject(id, showName, direction)
@@ -297,9 +359,9 @@ const main = async () => {
         safeArea,
         userAgent,
         launchImage,
-        screenOn
+        screenOn,
+        startMethod
     )
-
     // success
     console.log('✅ Worker Success')
 }
